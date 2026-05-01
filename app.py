@@ -30,11 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 APP_ENV = os.getenv("APP_ENV", "development").strip().lower()
 IS_PROD = APP_ENV == "production"
-IS_RENDER = bool(os.getenv("RENDER"))
-if IS_RENDER:
-    default_db_path = "/var/data/data.db"
-else:
-    default_db_path = str(BASE_DIR / "data.db")
+default_db_path = str(BASE_DIR / "data.db")
 DB_PATH = Path(os.getenv("DB_PATH", default_db_path))
 DEFAULT_ADMIN_USERNAME = os.getenv("DEFAULT_ADMIN_USERNAME", "admin")
 DEFAULT_ADMIN_PASSWORD = os.getenv("DEFAULT_ADMIN_PASSWORD")
@@ -49,10 +45,7 @@ REMEMBER_ME_DAYS = int(os.getenv("REMEMBER_ME_DAYS", "30"))
 
 ip_attempt_store = {}
 ip_attempt_lock = threading.Lock()
-if IS_RENDER:
-    default_upload_dir = "/var/data/uploads/messages"
-else:
-    default_upload_dir = str(BASE_DIR / "uploads" / "messages")
+default_upload_dir = str(BASE_DIR / "uploads" / "messages")
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", default_upload_dir))
 online_user_sids = {}
 sid_to_user = {}
@@ -1785,15 +1778,22 @@ def bootstrap():
     if IS_PROD and app.config["SECRET_KEY"] == "CHANGE_ME_FOR_PRODUCTION":
         raise RuntimeError("APP_SECRET_KEY zorunlu. Production ortaminda varsayilan key kullanilamaz.")
     with app.app_context():
-        try:
-            DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-            UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-        except PermissionError:
-            # Fallback for hosts without writable persistent mount.
-            DB_PATH = Path("/tmp/data.db")
-            UPLOAD_DIR = Path("/tmp/uploads/messages")
-            DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-            UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        candidate_paths = [(DB_PATH, UPLOAD_DIR), (Path("/tmp/data.db"), Path("/tmp/uploads/messages"))]
+        selected = None
+        for db_candidate, upload_candidate in candidate_paths:
+            try:
+                db_candidate.parent.mkdir(parents=True, exist_ok=True)
+                upload_candidate.mkdir(parents=True, exist_ok=True)
+                probe = upload_candidate / ".write_probe"
+                probe.write_text("ok", encoding="utf-8")
+                probe.unlink(missing_ok=True)
+                selected = (db_candidate, upload_candidate)
+                break
+            except OSError:
+                continue
+        if not selected:
+            raise RuntimeError("Yazilabilir depolama dizini bulunamadi.")
+        DB_PATH, UPLOAD_DIR = selected
         init_db()
         ensure_default_admin()
         ensure_default_portal_items()
