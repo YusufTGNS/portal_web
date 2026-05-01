@@ -30,11 +30,8 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 APP_ENV = os.getenv("APP_ENV", "development").strip().lower()
 IS_PROD = APP_ENV == "production"
-IS_NETLIFY = bool(os.getenv("NETLIFY")) or "AWS_LAMBDA_FUNCTION_NAME" in os.environ
 IS_RENDER = bool(os.getenv("RENDER"))
-if IS_NETLIFY:
-    default_db_path = "/tmp/data.db"
-elif IS_RENDER:
+if IS_RENDER:
     default_db_path = "/var/data/data.db"
 else:
     default_db_path = str(BASE_DIR / "data.db")
@@ -52,9 +49,7 @@ REMEMBER_ME_DAYS = int(os.getenv("REMEMBER_ME_DAYS", "30"))
 
 ip_attempt_store = {}
 ip_attempt_lock = threading.Lock()
-if IS_NETLIFY:
-    default_upload_dir = "/tmp/uploads/messages"
-elif IS_RENDER:
+if IS_RENDER:
     default_upload_dir = "/var/data/uploads/messages"
 else:
     default_upload_dir = str(BASE_DIR / "uploads" / "messages")
