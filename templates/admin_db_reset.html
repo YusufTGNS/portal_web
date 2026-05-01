@@ -3,9 +3,36 @@
 {% block content %}
 <section class="card auth-card danger-zone">
   <h1>Aşırı Güvenlikli DB Sıfırlama</h1>
-  <p class="muted">Bu işlem tüm user hesaplarını ve log kayıtlarını temizler. Admin hesapları korunur.</p>
+  <p class="muted">Admin hesapları korunur. Aşağıdan hangi veri alanlarının temizleneceğini seçebilirsiniz.</p>
+  <div class="stack-item">
+    <strong>Temizlenecek Veri Önizlemesi</strong>
+    <p class="muted" style="margin-top:6px;">
+      User: {{ preview.users }} • Portal: {{ preview.portal_items }} • Widget: {{ preview.portal_widgets }}
+      • Mesaj: {{ preview.messages }} • Feedback: {{ preview.feedback }} • Oda: {{ preview.rooms }}
+      • Log: {{ preview.logs }}
+    </p>
+  </div>
   <form method="post" class="form-grid">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Sıfırlanacak Alanlar</label>
+    <div class="stack-list">
+      <label class="inline-form">
+        <input type="checkbox" name="reset_scopes" value="users" {% if "users" in selected_scopes %}checked{% endif %}>
+        <span>Kullanıcı hesapları (sadece user)</span>
+      </label>
+      <label class="inline-form">
+        <input type="checkbox" name="reset_scopes" value="portal" {% if "portal" in selected_scopes %}checked{% endif %}>
+        <span>Portal ve widget verileri (sonradan eklenenler temizlenir)</span>
+      </label>
+      <label class="inline-form">
+        <input type="checkbox" name="reset_scopes" value="messages" {% if "messages" in selected_scopes %}checked{% endif %}>
+        <span>Mesaj, chat odası, engel ve feedback verileri</span>
+      </label>
+      <label class="inline-form">
+        <input type="checkbox" name="reset_scopes" value="logs" {% if "logs" in selected_scopes %}checked{% endif %}>
+        <span>Giriş/Tıklama/Admin logları</span>
+      </label>
+    </div>
     <label>Onay Cümlesi</label>
     <input type="text" name="confirm_phrase" placeholder="VERITABANI_SIFIRLA" required>
 

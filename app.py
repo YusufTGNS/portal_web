@@ -35,7 +35,7 @@ DB_PATH = Path(os.getenv("DB_PATH", default_db_path))
 DEFAULT_ADMIN_USERNAME = os.getenv("DEFAULT_ADMIN_USERNAME", "admin")
 DEFAULT_ADMIN_PASSWORD = os.getenv("DEFAULT_ADMIN_PASSWORD")
 DEFAULT_USER_INITIAL_PASSWORD = os.getenv("DEFAULT_USER_INITIAL_PASSWORD")
-LOCK_MINUTES = 15
+LOCK_MINUTES = 5
 MAX_FAILED_ATTEMPTS = 5
 MAX_IP_ATTEMPTS_PER_MINUTE = 25
 ALLOWED_ATTACHMENT_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "pdf", "txt", "doc", "docx"}
@@ -1492,38 +1492,115 @@ def admin_action_logs():
 @app.route("/admin/db-reset", methods=["GET", "POST"])
 @login_required(role="admin")
 def admin_db_reset():
+    available_scopes = ("users", "portal", "messages", "logs")
+
+    def reset_preview_counts():
+        db = get_db()
+        return {
+            "users": db.execute("SELECT COUNT(*) AS c FROM users WHERE role = 'user'").fetchone()["c"],
+            "portal_items": db.execute("SELECT COUNT(*) AS c FROM portal_items").fetchone()["c"],
+            "portal_widgets": db.execute("SELECT COUNT(*) AS c FROM portal_widgets").fetchone()["c"],
+            "messages": db.execute("SELECT COUNT(*) AS c FROM user_messages").fetchone()["c"],
+            "feedback": db.execute("SELECT COUNT(*) AS c FROM user_feedback").fetchone()["c"],
+            "rooms": db.execute("SELECT COUNT(*) AS c FROM chat_rooms").fetchone()["c"],
+            "logs": (
+                db.execute("SELECT COUNT(*) AS c FROM login_logs").fetchone()["c"]
+                + db.execute("SELECT COUNT(*) AS c FROM click_logs").fetchone()["c"]
+                + db.execute("SELECT COUNT(*) AS c FROM admin_actions").fetchone()["c"]
+            ),
+        }
+
+    def render_reset_page(selected_scopes=None):
+        return render_template(
+            "admin_db_reset.html",
+            db_reset_code=session.get("db_reset_code"),
+            preview=reset_preview_counts(),
+            selected_scopes=selected_scopes or list(available_scopes),
+        )
+
     user = current_user()
     if request.method == "GET":
         session["db_reset_code"] = secrets.token_hex(3).upper()
-        return render_template("admin_db_reset.html", db_reset_code=session["db_reset_code"])
+        return render_reset_page()
 
     verify_csrf()
     phrase = request.form.get("confirm_phrase", "").strip()
     code = request.form.get("reset_code", "").strip().upper()
     password = request.form.get("admin_password", "")
+    selected_scopes = [s for s in request.form.getlist("reset_scopes") if s in available_scopes]
+
+    if not selected_scopes:
+        flash("En az bir veri alanı seçmelisiniz.", "error")
+        return render_reset_page(selected_scopes=[]), 400
 
     if phrase != "VERITABANI_SIFIRLA":
         flash("Onay cümlesi hatalı.", "error")
-        return render_template("admin_db_reset.html", db_reset_code=session.get("db_reset_code")), 400
+        return render_reset_page(selected_scopes), 400
 
     if code != session.get("db_reset_code"):
         flash("Doğrulama kodu hatalı.", "error")
-        return render_template("admin_db_reset.html", db_reset_code=session.get("db_reset_code")), 400
+        return render_reset_page(selected_scopes), 400
 
     fresh_user = get_db().execute("SELECT * FROM users WHERE id = ?", (user["id"],)).fetchone()
     if not check_password_hash(fresh_user["password_hash"], password):
         flash("Admin şifresi doğrulanamadı.", "error")
-        return render_template("admin_db_reset.html", db_reset_code=session.get("db_reset_code")), 400
+        return render_reset_page(selected_scopes), 400
 
     db = get_db()
-    db.execute("DELETE FROM click_logs")
-    db.execute("DELETE FROM login_logs")
-    db.execute("DELETE FROM admin_actions")
-    db.execute("DELETE FROM users WHERE role = 'user'")
+    if "messages" in selected_scopes:
+        attachment_rows = db.execute(
+            """
+            SELECT attachment_stored_name
+            FROM user_messages
+            WHERE attachment_stored_name IS NOT NULL
+            """
+        ).fetchall()
+        for row in attachment_rows:
+            stored_name = row["attachment_stored_name"]
+            if not stored_name:
+                continue
+            file_path = UPLOAD_DIR / stored_name
+            if file_path.exists():
+                try:
+                    file_path.unlink()
+                except OSError:
+                    pass
+        db.execute("DELETE FROM room_messages")
+        db.execute("DELETE FROM room_members")
+        db.execute("DELETE FROM chat_rooms")
+        db.execute("DELETE FROM user_blocks")
+        db.execute("DELETE FROM user_messages")
+        db.execute("DELETE FROM user_feedback")
+
+    if "portal" in selected_scopes:
+        db.execute("DELETE FROM portal_widgets")
+        db.execute("DELETE FROM portal_items")
+
+    if "logs" in selected_scopes:
+        db.execute("DELETE FROM click_logs")
+        db.execute("DELETE FROM login_logs")
+        db.execute("DELETE FROM admin_actions")
+
+    if "users" in selected_scopes:
+        db.execute("DELETE FROM users WHERE role = 'user'")
+
     db.commit()
 
-    add_admin_action(user, "db-reset", "Tüm user kayıtları ve loglar temizlendi.")
-    flash("Veritabanı reset işlemi tamamlandı (admin hesapları korundu).", "ok")
+    if "portal" in selected_scopes:
+        ensure_default_portal_items()
+        ensure_default_portal_widgets()
+    if "messages" in selected_scopes:
+        ensure_default_chat_rooms()
+
+    scope_labels = {
+        "users": "Kullanıcılar",
+        "portal": "Portal/Widget",
+        "messages": "Mesaj/Chat/Geri Bildirim",
+        "logs": "Loglar",
+    }
+    selected_text = ", ".join(scope_labels[s] for s in selected_scopes)
+    add_admin_action(user, "db-reset", f"Secimli reset uygulandi: {selected_text}")
+    flash(f"DB reset tamamlandı. Temizlenen alanlar: {selected_text}.", "ok")
     session["db_reset_code"] = secrets.token_hex(3).upper()
     return redirect(url_for("admin_dashboard"))
 
