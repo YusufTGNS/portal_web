@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Giriş{% endblock %}
+{% block content %}
+<section class="card auth-card">
+  <h1>Giriş Yap</h1>
+  <p class="muted">Kullanıcı adı ve şifrenizi girin.</p>
+  <form method="post" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <label>Kullanıcı Adı</label>
+    <input type="text" name="username" maxlength="64" required autocomplete="username">
+
+    <label>Şifre</label>
+    <div class="password-wrap">
+      <input id="password-input" type="password" name="password" required autocomplete="current-password">
+      <button type="button" class="btn btn-outline reveal-btn" data-target="password-input" data-mode="toggle">🙈 Göster</button>
+    </div>
+    <small class="muted">Maymuna tıklayınca şifre görünür/gizlenir.</small>
+    <label style="display:flex; align-items:center; gap:8px;">
+      <input type="checkbox" name="remember_me" value="1" {% if remember_me %}checked{% endif %}>
+      <span>Beni hatırla</span>
+    </label>
+
+    <button class="btn" type="submit">Güvenli Giriş</button>
+  </form>
+</section>
+{% endblock %}

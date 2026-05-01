@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Admin Paneli{% endblock %}
+{% block content %}
+<section>
+  <h1>Admin Paneli</h1>
+  <div class="grid">
+    <div class="card stat"><h3>User Sayısı</h3><p>{{ stats.users }}</p></div>
+    <div class="card stat"><h3>Portal Öğesi</h3><p>{{ stats.portal_items }}</p></div>
+    <div class="card stat"><h3>Giriş Logu</h3><p>{{ stats.login_logs }}</p></div>
+    <div class="card stat"><h3>Tıklama Logu</h3><p>{{ stats.click_logs }}</p></div>
+    <div class="card stat"><h3>Feedback</h3><p>{{ stats.feedback }}</p></div>
+    <div class="card stat"><h3>Mesajlar</h3><p>{{ stats.messages }}</p></div>
+    <div class="card stat"><h3>Admin Aksiyon</h3><p>{{ stats.actions }}</p></div>
+  </div>
+
+  <nav class="admin-nav">
+    <a class="btn" href="{{ url_for('portal') }}">Portal Görünümü</a>
+    <a class="btn" href="{{ url_for('admin_users') }}">Kullanıcı İşlemleri</a>
+    <a class="btn" href="{{ url_for('admin_portal_items') }}">Portal Yönetimi</a>
+    <a class="btn" href="{{ url_for('admin_login_logs') }}">Giriş Logları</a>
+    <a class="btn" href="{{ url_for('admin_click_logs') }}">Tıklama Logları</a>
+    <a class="btn" href="{{ url_for('admin_feedback') }}">Feedback Kayıtları</a>
+    <a class="btn" href="{{ url_for('admin_messages') }}">Mesaj Kayıtları</a>
+    <a class="btn" href="{{ url_for('admin_action_logs') }}">Admin Aksiyonları</a>
+    <a class="btn btn-danger" href="{{ url_for('admin_db_reset') }}">DB Sıfırlama</a>
+  </nav>
+</section>
+{% endblock %}

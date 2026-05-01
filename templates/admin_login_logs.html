@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Giriş Logları{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Kullanıcı Giriş Logları</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Kullanıcı</th><th>IP</th><th>Durum</th><th>Neden</th><th>Zaman</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.id }}</td>
+        <td>{{ log.username }}</td>
+        <td>{{ log.ip_address }}</td>
+        <td>{{ log.status }}</td>
+        <td>{{ log.reason }}</td>
+        <td>{{ log.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Portal{% endblock %}
+{% block content %}
+<section class="card portal-hero">
+  <h1>Portal 2.0 Deneyimi</h1>
+  <p class="muted">Portal bağlantıları ve widget panelleri bu ekranda yer alır.</p>
+  <div class="portal-kpis">
+    <span class="kpi-chip">Aktif Portal: {{ links|length }}</span>
+    <span class="kpi-chip">Aktif Widget: {{ widgets|length }}</span>
+    <span class="kpi-chip">Tema: Dinamik</span>
+  </div>
+</section>
+
+<section style="margin-top: 14px;">
+  <h2>Portal Kartları</h2>
+  <div class="grid portal-links-grid">
+    {% for item in links %}
+    <article class="card portal-card">
+      <div class="portal-thumb-wrap">
+        {% if item.image_url %}
+          <img class="portal-thumb" src="{{ item.image_url }}" alt="{{ item.title }} önizleme görseli">
+        {% else %}
+          <div class="portal-thumb placeholder-thumb">
+            <span>{{ item.title[:1]|upper }}</span>
+          </div>
+        {% endif %}
+        <span class="portal-pill">Canlı</span>
+      </div>
+      <h3>{{ item.title }}</h3>
+      <p>{{ item.preview }}</p>
+      <form method="post" action="{{ url_for('portal_open', link_id=item.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn" type="submit">Bağlantıyı Aç</button>
+      </form>
+    </article>
+    {% else %}
+    <article class="card portal-card">
+      <h3>Portal öğesi bulunamadı</h3>
+      <p class="muted">Admin panelinden yeni portal bağlantıları eklenebilir.</p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="grid two-col" style="margin-top: 14px;">
+  <article class="card">
+    <h2>Portal Widget Alanı</h2>
+    <div class="stack-list">
+      {% for widget in widgets %}
+      <div class="stack-item widget-item" style="border-left: 4px solid {{ widget.accent_color }};">
+        <div class="message-head">
+          <strong>{{ widget.icon }} {{ widget.title }}</strong>
+        </div>
+        <p class="muted">{{ widget.body }}</p>
+        {% if widget.link_url %}
+        <a class="btn btn-outline" href="{{ widget.link_url }}">Widget Linki</a>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="stack-item muted">Henüz aktif widget yok.</div>
+      {% endfor %}
+    </div>
+  </article>
+
+  {% if current_user and current_user["role"] == "admin" %}
+  <article class="card">
+    <h2>Admin Widget Ekle</h2>
+    <form method="post" action="{{ url_for('portal_add_widget') }}" class="form-grid">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Başlık</label>
+      <input type="text" name="title" maxlength="100" required>
+      <label>İçerik</label>
+      <textarea name="body" rows="4" required></textarea>
+      <label>İkon (emoji)</label>
+      <input type="text" name="icon" maxlength="3" value="✨">
+      <label>Vurgu Rengi</label>
+      <input type="color" name="accent_color" value="#6366f1">
+      <label>Link (opsiyonel)</label>
+      <input type="url" name="link_url" placeholder="https://...">
+      <button class="btn" type="submit">Widget Ekle</button>
+    </form>
+  </article>
+  {% endif %}
+</section>
+{% endblock %}

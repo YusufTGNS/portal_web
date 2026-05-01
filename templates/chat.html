@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Chat{% endblock %}
+{% block content %}
+<section class="card portal-hero" id="portal-realtime"
+  data-user-id="{{ current_user.id }}"
+  data-csrf-token="{{ csrf_token }}"
+  data-deleted-text="Mesaj silindi"
+  data-read-url-template="/chat/messages/__id__/read"
+  data-delete-url-template="/chat/messages/__id__/delete"
+  data-download-url-template="/chat/messages/__id__/attachment">
+  <h1>Gerçek Zamanlı Mesajlaşma</h1>
+  <p class="muted">WhatsApp benzeri hızlı sohbet, typing, online/offline ve dosya ekleri.</p>
+  <div class="portal-kpis">
+    <span class="kpi-chip">Okunmamış: <strong id="unread-count">{{ unread_count }}</strong></span>
+    <span class="kpi-chip">Kişi: {{ recipients|length }}</span>
+    {% if selected_peer %}
+    <span class="kpi-chip">Aktif Konuşma: {{ selected_peer.username }}</span>
+    {% else %}
+    <span class="kpi-chip">Aktif Konuşma: Seçilmedi</span>
+    {% endif %}
+  </div>
+</section>
+
+<section class="chat-layout" style="margin-top: 14px;">
+  <aside class="card chat-sidebar">
+    <h3>Kişiler</h3>
+    <div id="online-users" class="muted">Online kullanıcı durumu yükleniyor...</div>
+    <div class="stack-list">
+      {% for recipient in recipients %}
+      <a class="stack-item contact-item {% if selected_peer_id == recipient.id %}active-contact{% endif %}" href="{{ url_for('chat_page', peer_id=recipient.id) }}" data-contact-id="{{ recipient.id }}">
+        <div class="message-head">
+          <strong>{{ recipient.username }}</strong>
+          {% set unread = unread_by_sender.get(recipient.id, 0) %}
+          {% if unread %}
+          <span class="kpi-chip">{{ unread }}</span>
+          {% endif %}
+        </div>
+      </a>
+      {% else %}
+      <div class="stack-item muted">Sohbet başlatabileceğiniz kullanıcı yok.</div>
+      {% endfor %}
+    </div>
+
+    <details class="stack-item">
+      <summary>Engelleme Ayarları</summary>
+      <form method="post" action="{{ url_for('portal_block_user') }}" class="form-grid" style="margin-top:8px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label>Kullanıcı Engelle</label>
+        <select name="recipient_id" required>
+          <option value="">Kullanıcı seçiniz</option>
+          {% for recipient in recipients %}
+          <option value="{{ recipient.id }}">{{ recipient.username }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-outline" type="submit">Engelle</button>
+      </form>
+      {% if blocked_users %}
+      <div class="block-list" style="margin-top:8px;">
+        {% for blocked in blocked_users %}
+        <form method="post" action="{{ url_for('portal_unblock_user', blocked_id=blocked.id) }}" class="inline-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <span>{{ blocked.username }}</span>
+          <button class="btn btn-outline" type="submit">Kaldır</button>
+        </form>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </details>
+  </aside>
+
+  <section class="card chat-main">
+    {% if selected_peer %}
+    <div class="message-head">
+      <h3>{{ selected_peer.username }}</h3>
+      <span id="typing-indicator-dm" class="muted"></span>
+    </div>
+    <div class="stack-list chat-thread" id="thread-list">
+      {% for msg in thread_messages %}
+      <div class="stack-item {% if msg.sender_id == current_user.id %}my-msg{% else %}peer-msg{% endif %}" data-message-id="{{ msg.id }}">
+        <div class="message-head">
+          <strong>{{ msg.sender_username }}</strong>
+          <span class="muted">{{ msg.created_at }}</span>
+        </div>
+        <p class="muted">{{ msg.body }}</p>
+        {% if msg.attachment_original_name %}
+        <a class="btn btn-outline" href="{{ url_for('portal_message_attachment', message_id=msg.id) }}">Dosya Eki</a>
+        {% endif %}
+        {% if msg.can_delete and msg.body != "Mesaj silindi" %}
+        <button class="btn btn-danger js-delete-message" type="button" data-message-id="{{ msg.id }}">Sil</button>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="stack-item muted">Bu kullanıcıyla henüz mesajlaşma yok.</div>
+      {% endfor %}
+    </div>
+
+    <form id="dm-form" method="post" action="{{ url_for('portal_send_message') }}" class="form-grid" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="recipient_id" id="recipient-select" value="{{ selected_peer.id }}">
+      <input type="hidden" name="peer_id" value="{{ selected_peer.id }}">
+      <input type="hidden" name="subject" value="DM">
+      <textarea name="body" id="dm-body" rows="3" placeholder="Mesaj yaz..." required></textarea>
+      <input type="file" name="attachment" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.txt,.doc,.docx">
+      <button class="btn" type="submit">Gönder</button>
+    </form>
+    {% else %}
+    <div class="stack-item muted">Sohbete başlamak için soldan bir kullanıcı seçin.</div>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

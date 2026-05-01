@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}DB Sıfırlama{% endblock %}
+{% block content %}
+<section class="card auth-card danger-zone">
+  <h1>Aşırı Güvenlikli DB Sıfırlama</h1>
+  <p class="muted">Bu işlem tüm user hesaplarını ve log kayıtlarını temizler. Admin hesapları korunur.</p>
+  <form method="post" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Onay Cümlesi</label>
+    <input type="text" name="confirm_phrase" placeholder="VERITABANI_SIFIRLA" required>
+
+    <label>Ekrandaki Kod</label>
+    <div class="code-box">{{ db_reset_code }}</div>
+    <input type="text" name="reset_code" maxlength="16" required>
+
+    <label>Admin Şifresi</label>
+    <div class="password-wrap">
+      <input id="admin-password" type="password" name="admin_password" required>
+      <button type="button" class="btn btn-outline reveal-btn" data-target="admin-password" data-mode="toggle">🙈 Göster</button>
+    </div>
+
+    <button class="btn btn-danger" type="submit">DB Sıfırlama İşlemini Başlat</button>
+  </form>
+</section>
+{% endblock %}

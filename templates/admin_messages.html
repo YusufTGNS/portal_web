@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Mesaj Kayıtları{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Kullanıcı Mesaj Kayıtları</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Gönderen</th><th>Alıcı</th><th>Konu</th><th>İçerik</th><th>Ek</th><th>Okunma</th><th>Silinme</th><th>Zaman</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.sender_username }}</td>
+        <td>{{ row.recipient_username }}</td>
+        <td>{{ row.subject }}</td>
+        <td>{{ row.body }}</td>
+        <td>{{ row.attachment_original_name or "-" }}</td>
+        <td>{{ "Okundu" if row.is_read else "Yeni" }}</td>
+        <td>
+          {% if row.deleted_by_sender or row.deleted_by_recipient %}
+            {% if row.deleted_by_sender %}G{% endif %}{% if row.deleted_by_sender and row.deleted_by_recipient %}/{% endif %}{% if row.deleted_by_recipient %}A{% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ row.created_at }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9">Henüz mesaj kaydı bulunamadı.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

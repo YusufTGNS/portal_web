@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: guvenli-portal
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -k eventlet -w 1 --bind 0.0.0.0:$PORT app:app
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/data.db
+      - key: UPLOAD_DIR
+        value: /var/data/uploads/messages
+      - key: REMEMBER_ME_DAYS
+        value: "30"
+      - key: DEFAULT_ADMIN_USERNAME
+        value: admin
+      - key: APP_SECRET_KEY
+        sync: false
+      - key: DEFAULT_ADMIN_PASSWORD
+        sync: false
+      - key: DEFAULT_USER_INITIAL_PASSWORD
+        sync: false

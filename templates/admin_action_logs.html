@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Admin Aksiyonlari{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Admin Aksiyon Loglari</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Admin</th><th>Aksiyon</th><th>Detay</th><th>Zaman</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.id }}</td>
+        <td>{{ log.admin_username }}</td>
+        <td>{{ log.action_type }}</td>
+        <td>{{ log.detail }}</td>
+        <td>{{ log.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

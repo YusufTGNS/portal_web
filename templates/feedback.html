@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Feedback{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Geri Bildirim Merkezi</h1>
+  <p class="muted">Portal deneyimini geliştirmek için geri bildiriminizi paylaşın.</p>
+  <form method="post" action="{{ url_for('portal_feedback') }}" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Kategori</label>
+    <select name="category">
+      <option>Genel</option>
+      <option>Portal</option>
+      <option>Hata</option>
+      <option>Öneri</option>
+    </select>
+    <label>Puan</label>
+    <select name="rating">
+      <option value="5">5 - Çok iyi</option>
+      <option value="4">4 - İyi</option>
+      <option value="3">3 - Orta</option>
+      <option value="2">2 - Geliştirilmeli</option>
+      <option value="1">1 - Zayıf</option>
+    </select>
+    <label>Mesaj</label>
+    <textarea name="message" rows="4" placeholder="Deneyiminizi paylaşın..." required></textarea>
+    <button class="btn" type="submit">Geri Bildirim Gönder</button>
+  </form>
+</section>
+
+<section class="card" style="margin-top: 14px;">
+  <h2>Son Geri Bildirimlerim</h2>
+  <div class="stack-list">
+    {% for row in feedback_recent %}
+    <div class="stack-item">
+      <div><strong>{{ row.category }}</strong> - {{ row.rating }}/5</div>
+      <p class="muted">{{ row.message }}</p>
+      <span class="muted">{{ row.created_at }}</span>
+    </div>
+    {% else %}
+    <div class="stack-item muted">Henüz geri bildirim bulunmuyor.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

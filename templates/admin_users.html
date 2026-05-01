@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Kullanıcılar{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Kullanıcı İşlemleri</h1>
+  <div class="grid admin-user-grid">
+    <article class="card">
+      <h3>Yeni Kullanıcı Oluştur</h3>
+      <p class="muted">Başlangıç şifresi ortam ayarından alınır, ilk girişte değişim zorunludur.</p>
+      <form method="post" action="{{ url_for('admin_create_user') }}" class="form-grid">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label>Kullanıcı Adı</label>
+        <input type="text" name="username" minlength="3" maxlength="64" required>
+        <button class="btn" type="submit">Kullanıcı Ekle</button>
+      </form>
+    </article>
+
+    <article class="card">
+      <h3>Filtre ve Arama</h3>
+      <form method="get" class="form-grid">
+        <label>Kullanıcı ara</label>
+        <input type="text" name="q" value="{{ q or '' }}" placeholder="kullanıcı adı">
+        <label>Filtre</label>
+        <select name="filter">
+          <option value="all" {% if filter_mode == "all" %}selected{% endif %}>Tümü</option>
+          <option value="locked" {% if filter_mode == "locked" %}selected{% endif %}>Kilitli</option>
+          <option value="must_change" {% if filter_mode == "must_change" %}selected{% endif %}>Şifre Değişecek</option>
+        </select>
+        <button class="btn" type="submit">Uygula</button>
+      </form>
+    </article>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Kullanıcı Adı</th><th>Rol</th><th>Zorunlu Değişim</th><th>Kilit Durumu</th><th>Başarısız</th><th>Son Giriş</th><th>İşlemler</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>
+          {% if user.role == "admin" %}👮 {% endif %}{{ user.username }}
+        </td>
+        <td>{{ "Admin" if user.role == "admin" else "User" }}</td>
+        <td>{{ "Evet" if user.must_change_password else "Hayır" }}</td>
+        <td>
+          {% if user.is_locked %}
+            Kilitli
+          {% else %}
+            Açık
+          {% endif %}
+        </td>
+        <td>{{ user.failed_attempts }}</td>
+        <td>{{ user.last_login or "-" }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin_user_action', user_id=user.id) }}" style="display:flex; gap:6px; flex-wrap:wrap;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            {% if user.is_locked %}
+              <button class="btn btn-outline" type="submit" name="action" value="unlock">Kilidi Aç</button>
+            {% else %}
+              <button class="btn btn-outline" type="submit" name="action" value="lock">Kilitle</button>
+            {% endif %}
+
+            {% if user.must_change_password %}
+              <button class="btn btn-outline" type="submit" name="action" value="clear-password-change">Değişim Zorunluluğunu Kaldır</button>
+            {% else %}
+              <button class="btn btn-outline" type="submit" name="action" value="force-password-change">Zorunlu Değişim Aç</button>
+            {% endif %}
+            {% if user.role == "admin" %}
+              {% if user.id != me_id and admin_count > 1 %}
+              <button class="btn btn-outline" type="submit" name="action" value="make-user">User Yap</button>
+              {% endif %}
+            {% else %}
+              <button class="btn btn-outline" type="submit" name="action" value="make-admin">Admin Yap</button>
+            {% endif %}
+            <button class="btn btn-danger" type="submit" name="action" value="reset-password">Şifre Sıfırla</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8">Kriterlere uygun kullanıcı bulunamadı.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

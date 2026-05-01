@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Portal Yönetimi{% endblock %}
+{% block content %}
+<section class="card auth-card">
+  <h1>Portal Öğesi Ekle</h1>
+  <p class="muted">Kullanıcı portalında görünecek kart, önizleme ve yönlendirme linkini buradan yönetin.</p>
+  <form method="post" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <label>Başlık</label>
+    <input type="text" name="title" maxlength="120" required>
+
+    <label>Önizleme Metni</label>
+    <input type="text" name="preview" maxlength="300" required>
+
+    <label>Yönlendirme URL (HTTPS)</label>
+    <input type="url" name="redirect_url" placeholder="https://ornek.com" required>
+
+    <label>Görsel URL (Opsiyonel)</label>
+    <input type="url" name="image_url" placeholder="https://ornek.com/gorsel.jpg">
+
+    <button class="btn" type="submit">Portal Öğesi Ekle</button>
+  </form>
+</section>
+
+<section class="card" style="margin-top: 14px;">
+  <h2>Mevcut Portal Öğeleri</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Başlık</th><th>URL</th><th>Durum</th><th>Ekleyen</th><th>Zaman</th><th>İşlem</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.title }}</td>
+        <td>{{ item.redirect_url }}</td>
+        <td>{{ "Aktif" if item.is_active else "Pasif" }}</td>
+        <td>{{ item.created_by_admin_username }}</td>
+        <td>{{ item.created_at }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin_toggle_portal_item', item_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="btn btn-outline" type="submit">
+              {{ "Pasife Al" if item.is_active else "Aktif Et" }}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

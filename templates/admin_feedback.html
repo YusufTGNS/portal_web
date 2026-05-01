@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Feedback Kayıtları{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Kullanıcı Geri Bildirimleri</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Kullanıcı</th><th>Kategori</th><th>Puan</th><th>Mesaj</th><th>Durum</th><th>Zaman</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.username }}</td>
+        <td>{{ row.category }}</td>
+        <td>{{ row.rating }}/5</td>
+        <td>{{ row.message }}</td>
+        <td>{{ row.status }}</td>
+        <td>{{ row.created_at }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7">Henüz geri bildirim bulunamadı.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

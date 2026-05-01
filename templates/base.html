@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Güvenli Portal{% endblock %}</title>
+  <script>
+    (function () {
+      var savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light" || savedTheme === "dark") {
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-grid"></div>
+  <header class="topbar">
+    <div class="brand">Güvenli Portal</div>
+      <div class="topbar-right">
+    {% if current_user %}
+        <a class="btn btn-outline nav-mini" href="{{ url_for('portal') }}">Portal</a>
+        <a class="btn btn-outline nav-mini" href="{{ url_for('feedback_page') }}">Feedback</a>
+        <a class="btn btn-outline nav-mini" href="{{ url_for('chat_page') }}">Chat</a>
+        {% if current_user["role"] == "admin" %}
+        <a class="btn btn-outline nav-mini" href="{{ url_for('admin_dashboard') }}">Admin</a>
+        {% endif %}
+    {% endif %}
+        <button id="theme-toggle" class="btn btn-outline theme-toggle" type="button" aria-label="Tema değiştir">🌙 Koyu</button>
+    {% if current_user %}
+        <span class="badge">{{ current_user["username"] }}</span>
+        <form method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn btn-danger" type="submit">Çıkış</button>
+        </form>
+    {% endif %}
+      </div>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
