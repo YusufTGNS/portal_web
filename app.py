@@ -1781,10 +1781,19 @@ def socket_send_room_message(data):
 
 
 def bootstrap():
+    global DB_PATH, UPLOAD_DIR
     if IS_PROD and app.config["SECRET_KEY"] == "CHANGE_ME_FOR_PRODUCTION":
         raise RuntimeError("APP_SECRET_KEY zorunlu. Production ortaminda varsayilan key kullanilamaz.")
     with app.app_context():
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+            UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            # Fallback for hosts without writable persistent mount.
+            DB_PATH = Path("/tmp/data.db")
+            UPLOAD_DIR = Path("/tmp/uploads/messages")
+            DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+            UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
         init_db()
         ensure_default_admin()
         ensure_default_portal_items()
