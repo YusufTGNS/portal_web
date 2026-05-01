@@ -58,38 +58,6 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-function createPostForm(action, csrfToken, text, buttonClass) {
-  return `
-    <form method="post" action="${action}">
-      <input type="hidden" name="csrf_token" value="${csrfToken}">
-      <button class="btn ${buttonClass || ""}" type="submit">${text}</button>
-    </form>
-  `;
-}
-
-function renderDmCard(message, opts) {
-  const readForm = !message.is_read
-    ? createPostForm(opts.readUrl(message.id), opts.csrfToken, "Okundu İşaretle", "btn-outline")
-    : "";
-  const downloadBtn = message.has_attachment
-    ? `<a class="btn btn-outline" href="${opts.downloadUrl(message.id)}">Dosyayı İndir</a>`
-    : "";
-  const deleteForm = createPostForm(opts.deleteUrl(message.id), opts.csrfToken, "Mesajı Sil", "btn-danger");
-  return `
-    <div class="stack-item ${message.is_read ? "" : "unread-item"}" data-message-id="${message.id}">
-      <div class="message-head">
-        <strong>${escapeHtml(message.sender_username)}</strong>
-        <span class="muted">${escapeHtml(message.created_at)}</span>
-      </div>
-      <div><strong>${escapeHtml(message.subject)}</strong></div>
-      <p class="muted">${escapeHtml(message.body)}</p>
-      ${downloadBtn}
-      ${readForm}
-      ${deleteForm}
-    </div>
-  `;
-}
-
 function initPortalRealtime() {
   const root = document.getElementById("portal-realtime");
   if (!root || typeof io === "undefined") return;
@@ -97,7 +65,6 @@ function initPortalRealtime() {
   const userId = Number(root.dataset.userId || 0);
   const csrfToken = root.dataset.csrfToken;
   const deletedText = root.dataset.deletedText || "Mesaj silindi";
-  const readUrl = (id) => root.dataset.readUrlTemplate.replace("__id__", id);
   const deleteUrl = (id) => root.dataset.deleteUrlTemplate.replace("__id__", id);
   const downloadUrl = (id) => root.dataset.downloadUrlTemplate.replace("__id__", id);
 
@@ -148,10 +115,6 @@ function initPortalRealtime() {
     `;
     threadList.insertAdjacentHTML("beforeend", html);
     threadList.scrollTop = threadList.scrollHeight;
-  }
-
-  function removeMessageCards(messageId) {
-    document.querySelectorAll(`[data-message-id="${messageId}"]`).forEach((el) => el.remove());
   }
 
   function markMessageDeleted(messageId, text) {

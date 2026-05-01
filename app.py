@@ -527,13 +527,13 @@ def login():
 
     verify_csrf()
     ip = client_ip()
+    remember_me = request.form.get("remember_me") == "1"
     if ip_rate_limited(ip):
         flash("Çok fazla deneme yaptınız. 1 dakika sonra tekrar deneyin.", "error")
-        return render_template("login.html"), 429
+        return render_template("login.html", remember_me=remember_me), 429
 
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
-    remember_me = request.form.get("remember_me") == "1"
     user = get_db().execute(
         "SELECT * FROM users WHERE username = ? LIMIT 1",
         (username,),
