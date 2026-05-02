@@ -389,7 +389,9 @@ input:focus {
 .portal-thumb-wrap {
   position: relative;
   margin-bottom: 10px;
-  height: 180px;
+  height: 160px;
+  min-height: 160px;
+  max-height: 160px;
   border-radius: 10px;
   border: 1px solid rgba(100, 116, 139, 0.42);
   background: rgba(2, 6, 23, 0.35);

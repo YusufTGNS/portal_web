@@ -18,7 +18,7 @@
     <div class="stack-list">
       <label class="inline-form">
         <input type="checkbox" name="reset_scopes" value="users" {% if "users" in selected_scopes %}checked{% endif %}>
-        <span>Kullanıcı hesapları (sadece user)</span>
+        <span>Kullanıcı hesapları (aktif admin hesabı hariç)</span>
       </label>
       <label class="inline-form">
         <input type="checkbox" name="reset_scopes" value="portal" {% if "portal" in selected_scopes %}checked{% endif %}>
@@ -31,6 +31,10 @@
       <label class="inline-form">
         <input type="checkbox" name="reset_scopes" value="logs" {% if "logs" in selected_scopes %}checked{% endif %}>
         <span>Giriş/Tıklama/Admin logları</span>
+      </label>
+      <label class="inline-form">
+        <input type="checkbox" name="reset_scopes" value="all_except_admin" {% if "all_except_admin" in selected_scopes %}checked{% endif %}>
+        <span>Admin hariç TAM sıfırlama (kullanıcı+portal+mesaj+log hepsi)</span>
       </label>
     </div>
     <label>Onay Cümlesi</label>

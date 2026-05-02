@@ -1530,7 +1530,8 @@ def admin_action_logs():
 @app.route("/admin/db-reset", methods=["GET", "POST"])
 @login_required(role="admin")
 def admin_db_reset():
-    available_scopes = ("users", "portal", "messages", "logs")
+    available_scopes = ("users", "portal", "messages", "logs", "all_except_admin")
+    default_scopes = ("users", "portal", "messages", "logs")
 
     def reset_preview_counts():
         db = get_db()
@@ -1553,7 +1554,7 @@ def admin_db_reset():
             "admin_db_reset.html",
             db_reset_code=session.get("db_reset_code"),
             preview=reset_preview_counts(),
-            selected_scopes=selected_scopes or list(available_scopes),
+            selected_scopes=selected_scopes or list(default_scopes),
         )
 
     user = current_user()
@@ -1585,7 +1586,10 @@ def admin_db_reset():
         return render_reset_page(selected_scopes), 400
 
     db = get_db()
-    if "messages" in selected_scopes:
+    if "all_except_admin" in selected_scopes:
+        selected_scopes = ["all_except_admin"]
+
+    if "messages" in selected_scopes or "all_except_admin" in selected_scopes:
         attachment_rows = db.execute(
             """
             SELECT attachment_stored_name
@@ -1610,16 +1614,16 @@ def admin_db_reset():
         db.execute("DELETE FROM user_messages")
         db.execute("DELETE FROM user_feedback")
 
-    if "portal" in selected_scopes:
+    if "portal" in selected_scopes or "all_except_admin" in selected_scopes:
         db.execute("DELETE FROM portal_widgets")
         db.execute("DELETE FROM portal_items")
 
-    if "logs" in selected_scopes:
+    if "logs" in selected_scopes or "all_except_admin" in selected_scopes:
         db.execute("DELETE FROM click_logs")
         db.execute("DELETE FROM login_logs")
         db.execute("DELETE FROM admin_actions")
 
-    if "users" in selected_scopes:
+    if "users" in selected_scopes or "all_except_admin" in selected_scopes:
         db.execute("DELETE FROM users WHERE id != ?", (user["id"],))
 
     db.commit()
@@ -1632,6 +1636,7 @@ def admin_db_reset():
         "portal": "Portal/Widget",
         "messages": "Mesaj/Chat/Geri Bildirim",
         "logs": "Loglar",
+        "all_except_admin": "Admin Hariç Tam Sıfırlama",
     }
     selected_text = ", ".join(scope_labels[s] for s in selected_scopes)
     add_admin_action(user, "db-reset", f"Secimli reset uygulandi: {selected_text}")
