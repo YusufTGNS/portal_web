@@ -41,12 +41,18 @@
         <td>{{ item.created_by_admin_username }}</td>
         <td>{{ item.created_at }}</td>
         <td>
-          <form method="post" action="{{ url_for('admin_toggle_portal_item', item_id=item.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <button class="btn btn-outline" type="submit">
-              {{ "Pasife Al" if item.is_active else "Aktif Et" }}
-            </button>
-          </form>
+          <div class="portal-item-actions">
+            <form method="post" action="{{ url_for('admin_toggle_portal_item', item_id=item.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="btn btn-outline" type="submit">
+                {{ "Pasife Al" if item.is_active else "Aktif Et" }}
+              </button>
+            </form>
+            <form method="post" action="{{ url_for('admin_delete_portal_item', item_id=item.id) }}" data-confirm-message="Bu portal öğesi kalıcı olarak silinecek. Devam edilsin mi?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="btn btn-danger" type="submit">Sil</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% endfor %}

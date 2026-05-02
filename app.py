@@ -695,6 +695,25 @@ def portal_add_widget():
     return redirect(url_for("portal"))
 
 
+@app.route("/portal/widgets/<int:widget_id>/delete", methods=["POST"])
+@login_required(role="admin")
+def portal_delete_widget(widget_id):
+    verify_csrf()
+    admin = current_user()
+    widget = get_db().execute(
+        "SELECT id, title FROM portal_widgets WHERE id = ? LIMIT 1",
+        (widget_id,),
+    ).fetchone()
+    if not widget:
+        abort(404)
+
+    get_db().execute("DELETE FROM portal_widgets WHERE id = ?", (widget_id,))
+    get_db().commit()
+    add_admin_action(admin, "delete-widget", f"Portal widget silindi: {widget['title']}")
+    flash("Widget silindi.", "ok")
+    return redirect(url_for("portal"))
+
+
 @app.route("/feedback")
 @login_required()
 def feedback_page():
@@ -1475,6 +1494,25 @@ def admin_toggle_portal_item(item_id):
     return redirect(url_for("admin_portal_items"))
 
 
+@app.route("/admin/portal-items/<int:item_id>/delete", methods=["POST"])
+@login_required(role="admin")
+def admin_delete_portal_item(item_id):
+    verify_csrf()
+    admin = current_user()
+    item = get_db().execute(
+        "SELECT id, title FROM portal_items WHERE id = ? LIMIT 1",
+        (item_id,),
+    ).fetchone()
+    if not item:
+        abort(404)
+
+    get_db().execute("DELETE FROM portal_items WHERE id = ?", (item_id,))
+    get_db().commit()
+    add_admin_action(admin, "delete-portal-item", f"Portal öğe silindi: {item['title']}")
+    flash("Portal öğesi silindi.", "ok")
+    return redirect(url_for("admin_portal_items"))
+
+
 @app.route("/admin/actions")
 @login_required(role="admin")
 def admin_action_logs():
@@ -1582,13 +1620,10 @@ def admin_db_reset():
         db.execute("DELETE FROM admin_actions")
 
     if "users" in selected_scopes:
-        db.execute("DELETE FROM users WHERE role = 'user'")
+        db.execute("DELETE FROM users WHERE id != ?", (user["id"],))
 
     db.commit()
 
-    if "portal" in selected_scopes:
-        ensure_default_portal_items()
-        ensure_default_portal_widgets()
     if "messages" in selected_scopes:
         ensure_default_chat_rooms()
 
@@ -1873,8 +1908,6 @@ def bootstrap():
         DB_PATH, UPLOAD_DIR = selected
         init_db()
         ensure_default_admin()
-        ensure_default_portal_items()
-        ensure_default_portal_widgets()
         ensure_default_chat_rooms()
 
 

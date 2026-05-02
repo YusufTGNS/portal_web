@@ -49,6 +49,15 @@ document.querySelectorAll(".reveal-btn").forEach((btn) => {
   });
 });
 
+document.addEventListener("submit", (ev) => {
+  const form = ev.target.closest("form[data-confirm-message]");
+  if (!form) return;
+  const message = form.dataset.confirmMessage || "Bu işlem onay gerektiriyor. Devam edilsin mi?";
+  if (!window.confirm(message)) {
+    ev.preventDefault();
+  }
+});
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -110,7 +119,7 @@ function initPortalRealtime() {
         </div>
         <p class="muted">${escapeHtml(message.body)}</p>
         ${message.has_attachment && !isDeleted ? `<a class="btn btn-outline" href="${downloadUrl(message.id)}">Dosya Eki</a>` : ""}
-        ${isMine && !isDeleted ? `<button class="btn btn-danger js-delete-message" type="button" data-message-id="${message.id}">Sil</button>` : ""}
+        ${isMine && !isDeleted ? `<button class="btn btn-danger js-delete-message" type="button" data-message-id="${message.id}" data-confirm-message="Bu mesaj silinecek. Devam edilsin mi?">Sil</button>` : ""}
       </div>
     `;
     threadList.insertAdjacentHTML("beforeend", html);
@@ -212,6 +221,8 @@ function initPortalRealtime() {
       if (!btn) return;
       const messageId = Number(btn.dataset.messageId || 0);
       if (!messageId) return;
+      const confirmMessage = btn.dataset.confirmMessage || "Bu mesaj silinecek. Devam edilsin mi?";
+      if (!window.confirm(confirmMessage)) return;
       try {
         const response = await fetch(deleteUrl(messageId), {
           method: "POST",

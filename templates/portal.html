@@ -52,9 +52,17 @@
           <strong>{{ widget.icon }} {{ widget.title }}</strong>
         </div>
         <p class="muted">{{ widget.body }}</p>
-        {% if widget.link_url %}
-        <a class="btn btn-outline" href="{{ widget.link_url }}">Widget Linki</a>
-        {% endif %}
+        <div class="portal-widget-actions">
+          {% if widget.link_url %}
+          <a class="btn btn-outline" href="{{ widget.link_url }}">Widget Linki</a>
+          {% endif %}
+          {% if current_user and current_user["role"] == "admin" %}
+          <form method="post" action="{{ url_for('portal_delete_widget', widget_id=widget.id) }}" data-confirm-message="Bu widget kalıcı olarak silinecek. Devam edilsin mi?">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="btn btn-danger" type="submit">Widget Sil</button>
+          </form>
+          {% endif %}
+        </div>
       </div>
       {% else %}
       <div class="stack-item muted">Henüz aktif widget yok.</div>

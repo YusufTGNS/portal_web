@@ -85,7 +85,7 @@
         <a class="btn btn-outline" href="{{ url_for('portal_message_attachment', message_id=msg.id) }}">Dosya Eki</a>
         {% endif %}
         {% if msg.can_delete and msg.body != "Mesaj silindi" %}
-        <button class="btn btn-danger js-delete-message" type="button" data-message-id="{{ msg.id }}">Sil</button>
+        <button class="btn btn-danger js-delete-message" type="button" data-message-id="{{ msg.id }}" data-confirm-message="Bu mesaj silinecek. Devam edilsin mi?">Sil</button>
         {% endif %}
       </div>
       {% else %}

@@ -435,6 +435,25 @@ input:focus {
   gap: 8px;
 }
 
+.admin-nav-section + .admin-nav-section {
+  margin-top: 18px;
+}
+
+.admin-nav-section h2 {
+  margin-bottom: 0;
+}
+
+.portal-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.portal-widget-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .admin-user-grid {
   margin-bottom: 14px;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

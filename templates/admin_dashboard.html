@@ -13,16 +13,25 @@
     <div class="card stat"><h3>Admin Aksiyon</h3><p>{{ stats.actions }}</p></div>
   </div>
 
-  <nav class="admin-nav">
-    <a class="btn" href="{{ url_for('portal') }}">Portal Görünümü</a>
-    <a class="btn" href="{{ url_for('admin_users') }}">Kullanıcı İşlemleri</a>
-    <a class="btn" href="{{ url_for('admin_portal_items') }}">Portal Yönetimi</a>
-    <a class="btn" href="{{ url_for('admin_login_logs') }}">Giriş Logları</a>
-    <a class="btn" href="{{ url_for('admin_click_logs') }}">Tıklama Logları</a>
-    <a class="btn" href="{{ url_for('admin_feedback') }}">Feedback Kayıtları</a>
-    <a class="btn" href="{{ url_for('admin_messages') }}">Mesaj Kayıtları</a>
-    <a class="btn" href="{{ url_for('admin_action_logs') }}">Admin Aksiyonları</a>
-    <a class="btn btn-danger" href="{{ url_for('admin_db_reset') }}">DB Sıfırlama</a>
-  </nav>
+  <section class="admin-nav-section">
+    <h2>İşlemler</h2>
+    <nav class="admin-nav">
+      <a class="btn" href="{{ url_for('portal') }}">Portal Görünümü</a>
+      <a class="btn" href="{{ url_for('admin_users') }}">Kullanıcı İşlemleri</a>
+      <a class="btn" href="{{ url_for('admin_portal_items') }}">Portal Yönetimi</a>
+      <a class="btn btn-danger" href="{{ url_for('admin_db_reset') }}">DB Sıfırlama</a>
+    </nav>
+  </section>
+
+  <section class="admin-nav-section">
+    <h2>Loglar</h2>
+    <nav class="admin-nav">
+      <a class="btn" href="{{ url_for('admin_login_logs') }}">Giriş Logları</a>
+      <a class="btn" href="{{ url_for('admin_click_logs') }}">Tıklama Logları</a>
+      <a class="btn" href="{{ url_for('admin_feedback') }}">Feedback Kayıtları</a>
+      <a class="btn" href="{{ url_for('admin_messages') }}">Mesaj Kayıtları</a>
+      <a class="btn" href="{{ url_for('admin_action_logs') }}">Admin Aksiyonları</a>
+    </nav>
+  </section>
 </section>
 {% endblock %}
